@@ -33,6 +33,7 @@ public class PartidoService {
      */
     public Partido crearPartido(int idDueno, Deporte deporte, int cantJugadores,
                                 LocalDateTime fechaHora, INivelJugador nivelRequerido) {
+        // Llama al método principal, pasando 0 como ID
         return crearPartido(idDueno, deporte, cantJugadores, null, 
                           "90 minutos", false, fechaHora, nivelRequerido);
     }
@@ -44,16 +45,17 @@ public class PartidoService {
         Cuenta dueno = cuentaRepo.buscarPorId(idDueno)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        // Crear el partido
-        int proximoId = partidoRepo.obtenerProximoId();
-        Partido partido = new Partido(proximoId, deporte, cantJugadores, ubicacion,
+        // 🔽🔽 CORRECCIÓN 🔽🔽
+        // Se crea el partido con ID 0. El repositorio le asignará el ID correcto.
+        Partido partido = new Partido(0, deporte, cantJugadores, ubicacion,
                                       duracion, cuentaConCancha, dueno, fechaHora, nivelRequerido);
+        // 🔼🔼 FIN DE CORRECCIÓN 🔼🔼
 
         // Registrar observadores (Observer pattern)
         partido.agregarObservador(new EmailNotificacion());
         partido.agregarObservador(new PushNotificacion());
 
-        // Guardar el partido
+        // Guardar el partido (Ahora el repo incrementará el contador)
         partidoRepo.guardar(partido);
 
         System.out.println("✓ Partido creado con ID: " + partido.getId());

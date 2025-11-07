@@ -20,11 +20,18 @@ public class Main {
     private static ICuentaRepository cuentaRepo = new CuentaRepoLocal();
     private static IPartidoRepository partidoRepo = new PartidoRepoLocal();
     private static IDeporteRepository deporteRepo = new DeporteRepoLocal();
+    // 🔽 AÑADIDO 🔽
+    private static IEstadisticaRepository estadisticaRepo = new EstadisticaRepoLocal();
+    private static IComentarioRepository comentarioRepo = new ComentarioRepoLocal();
 
     // Servicios (Capa de lógica de negocio - Controlador en MVC)
     private static CuentaService cuentaService = new CuentaService(cuentaRepo);
     private static PartidoService partidoService = new PartidoService(partidoRepo, cuentaRepo);
     private static DeporteService deporteService = new DeporteService(deporteRepo);
+    // 🔽 AÑADIDO 🔽 (Ajusta los constructores si es necesario)
+    private static EstadisticaService estadisticaService = new EstadisticaService(estadisticaRepo, cuentaRepo, partidoRepo);
+    private static ComentarioService comentarioService = new ComentarioService(comentarioRepo, cuentaRepo, partidoRepo);
+
 
     // Scanner para entrada del usuario
     private static Scanner scanner = new Scanner(System.in);
@@ -69,6 +76,13 @@ public class Main {
                 case 10:
                     mostrarDeportes();
                     break;
+                // 🔽 AÑADIDO 🔽
+                case 11:
+                    registrarEstadisticas();
+                    break;
+                case 12:
+                    agregarComentario();
+                    break;
                 case 0:
                     continuar = false;
                     System.out.println("\n¡Gracias por usar el Sistema Uno Mas!");
@@ -105,6 +119,8 @@ public class Main {
         System.out.println("8.  Ver todos los usuarios");
         System.out.println("9.  🔥 Probar envío de email real");
         System.out.println("10. Ver deportes disponibles");
+        System.out.println("11. Registrar estadísticas de partido (Finalizado)");
+        System.out.println("12. Añadir comentario a partido (Finalizado)");
         System.out.println("0.  Salir");
         System.out.print("Seleccione una opción: ");
     }
@@ -136,6 +152,7 @@ public class Main {
         int puntosNivel = leerOpcion();
         
         try {
+            // Se aplica la corrección del ID que hicimos antes
             Cuenta nuevaCuenta = cuentaService.registrarCuenta(nombre, email, clave, puntosNivel);
             System.out.println("\n✓ Usuario registrado exitosamente!");
             System.out.println("ID: " + nuevaCuenta.getId());
@@ -162,6 +179,13 @@ public class Main {
                                                 " (" + u.getNivel().getNombre() + ")"));
         System.out.print("ID del organizador: ");
         int idOrganizador = leerOpcion();
+        
+        // 🔽 VALIDACIÓN AÑADIDA (Recomendación anterior) 🔽
+        Cuenta organizador = cuentaService.buscarPorId(idOrganizador).orElse(null);
+        if (organizador == null) {
+            System.out.println("⚠ Usuario organizador no encontrado. Volviendo al menú.");
+            return; // Salir del método
+        }
 
         // Seleccionar deporte
         System.out.println("\n--- Seleccionar Deporte ---");
@@ -213,7 +237,7 @@ public class Main {
         int opNivel = leerOpcion();
 
         INivelJugador nivelRequerido = null;
-        Cuenta organizador = cuentaService.buscarPorId(idOrganizador).orElse(null);
+        // Cuenta organizador = cuentaService.buscarPorId(idOrganizador).orElse(null); // Movido arriba
         
         if (opNivel >= 1 && opNivel <= 3 && organizador != null) {
             int puntos = (opNivel == 1) ? 5 : (opNivel == 2) ? 15 : 25;
@@ -248,7 +272,7 @@ public class Main {
         // Mostrar partidos disponibles
         List<Partido> partidos = partidoService.obtenerTodosLosPartidos();
         List<Partido> partidosDisponibles = partidos.stream()
-            .filter(p -> p.getEstado() instanceof NecesitaJugadores)
+            .filter(p -> p.getEstado() instanceof NecesitaJugadores) // Asume que existe esta clase de estado
             .toList();
 
         if (partidosDisponibles.isEmpty()) {
@@ -317,6 +341,7 @@ public class Main {
                     break;
                 case 3:
                     partidoService.finalizarPartido(idPartido);
+                    System.out.println("✓ Partido finalizado. Ahora puedes registrar estadísticas (Opción 11) y comentarios (Opción 12).");
                     break;
                 case 4:
                     partidoService.cancelarPartido(idPartido);
@@ -326,6 +351,15 @@ public class Main {
             }
         } catch (Exception e) {
             System.out.println("⚠ Error: " + e.getMessage());
+        }
+    }
+
+    // 🔽 RECOMENDACIÓN: Método para leer doubles 🔽
+    private static double leerDouble() {
+        try {
+            return Double.parseDouble(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            return -1.0; // O un valor por defecto que manejes
         }
     }
 
@@ -364,8 +398,13 @@ public class Main {
                 estrategia = new EmparejamientoPorNivel();
                 break;
             case 2:
-                System.out.print("Radio máximo en kilómetros: ");
-                double radio = leerOpcion();
+                // 🔽 CORRECCIÓN: Usar leerDouble() 🔽
+                System.out.print("Radio máximo en kilómetros (ej: 10.5): ");
+                double radio = leerDouble(); // Usar el nuevo método
+                if (radio <= 0) {
+                     System.out.println("⚠ Radio inválido. Usando 10km por defecto.");
+                     radio = 10.0;
+                }
                 estrategia = new EmparejamientoPorCercania(radio);
                 break;
             case 3:
@@ -467,11 +506,31 @@ public class Main {
         
         for (Partido p : partidos) {
             System.out.println("\n───────────────────────────────");
-            System.out.println(p);
+            System.out.println(p); // Muestra info básica del partido
+            
             System.out.println("Jugadores inscritos:");
             p.getJugadores().forEach(j -> 
                 System.out.println("  - " + j.getNombre() + " (" + j.getNivel().getNombre() + ")")
             );
+
+            // 🔽 AÑADIDO: Mostrar Estadísticas y Comentarios 🔽
+            System.out.println("Estadísticas:");
+            // (Asumo que tu service tiene este método)
+            List<Estadistica> stats = estadisticaService.obtenerEstadisticasPorPartido(p.getId());
+            if (stats.isEmpty()) {
+                System.out.println("  (Sin estadísticas registradas)");
+            } else {
+                stats.forEach(s -> System.out.println("  - " + s)); // Usa el toString() de Estadistica
+            }
+
+            System.out.println("Comentarios:");
+            // (Asumo que tu service tiene este método)
+            List<Comentario> comentarios = comentarioService.obtenerComentariosPorPartido(p.getId());
+            if (comentarios.isEmpty()) {
+                System.out.println("  (Sin comentarios)");
+            } else {
+                comentarios.forEach(c -> System.out.println("  - " + c)); // Usa el toString() de Comentario
+            }
         }
         System.out.println("───────────────────────────────");
     }
@@ -535,6 +594,137 @@ public class Main {
         } catch (Exception e) {
             System.out.println("⚠ Error cargando datos: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    // 🔽🔽🔽 MÉTODOS NUEVOS AÑADIDOS 🔽🔽🔽
+
+    /**
+     * Permite registrar estadísticas para un jugador en un partido finalizado.
+     */
+    private static void registrarEstadisticas() {
+        System.out.println("\n═══ REGISTRAR ESTADÍSTICAS ═══");
+
+        // 1. Filtrar partidos finalizados
+        // (Asumo que tienes una clase de estado llamada 'Finalizado' en state.*)
+        List<Partido> partidosFinalizados = partidoService.obtenerTodosLosPartidos().stream()
+                .filter(p -> p.getEstado() instanceof Finalizado)
+                .toList();
+
+        if (partidosFinalizados.isEmpty()) {
+            System.out.println("⚠ No hay partidos finalizados para registrar estadísticas.");
+            return;
+        }
+
+        // 2. Seleccionar Partido
+        System.out.println("\n--- Partidos Finalizados ---");
+        partidosFinalizados.forEach(p ->
+                System.out.println(p.getId() + ". " + p.getTipoDeporte().getNombre() + " en " + p.getUbicacion())
+        );
+        System.out.print("\nID del partido: ");
+        int idPartido = leerOpcion();
+        
+        Partido partido = partidoService.buscarPartidoPorId(idPartido).orElse(null);
+        if (partido == null || !(partido.getEstado() instanceof Finalizado)) {
+            System.out.println("⚠ ID de partido inválido o no está finalizado.");
+            return;
+        }
+
+        // 3. Seleccionar Jugador (del partido)
+        System.out.println("\n--- Jugadores del Partido ---");
+        partido.getJugadores().forEach(j -> System.out.println(j.getId() + ". " + j.getNombre()));
+        System.out.print("\nID del jugador para cargar estadísticas: ");
+        int idJugador = leerOpcion();
+
+        Cuenta jugador = partido.getJugadores().stream()
+                           .filter(j -> j.getId() == idJugador).findFirst().orElse(null);
+        
+        if (jugador == null) {
+            System.out.println("⚠ Ese jugador no participó en este partido.");
+            return;
+        }
+
+        // 4. Pedir datos
+        System.out.print("Puntos anotados: ");
+        int puntos = leerOpcion();
+        System.out.print("Asistencias: ");
+        int asistencias = leerOpcion();
+        System.out.print("Faltas cometidas: ");
+        int faltas = leerOpcion();
+        System.out.print("¿Fue MVP? (1=Sí, 0=No): ");
+        String mvp = leerOpcion() == 1 ? "Sí" : "No";
+        System.out.print("Descripción/Notas: ");
+        String descripcion = scanner.nextLine();
+
+        // 5. Llamar al servicio
+        try {
+            // (Asumo que tu EstadisticaService tiene un método así)
+            Estadistica nuevaEstadistica = estadisticaService.crearEstadistica(
+                idJugador, idPartido, puntos, asistencias, faltas, mvp, descripcion
+            );
+            System.out.println("\n✓ Estadísticas registradas para " + jugador.getNombre() + "!");
+            System.out.println("Puntuación general: " + nuevaEstadistica.calcularPuntuacionGeneral());
+        } catch (Exception e) {
+            System.out.println("⚠ Error al registrar estadísticas: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Permite añadir un comentario a un partido finalizado.
+     */
+    private static void agregarComentario() {
+        System.out.println("\n═══ AÑADIR COMENTARIO ═══");
+
+        // 1. Filtrar partidos finalizados
+        List<Partido> partidosFinalizados = partidoService.obtenerTodosLosPartidos().stream()
+                .filter(p -> p.getEstado() instanceof Finalizado)
+                .toList();
+
+        if (partidosFinalizados.isEmpty()) {
+            System.out.println("⚠ No hay partidos finalizados para comentar.");
+            return;
+        }
+
+        // 2. Seleccionar Partido
+        System.out.println("\n--- Partidos Finalizados ---");
+        partidosFinalizados.forEach(p ->
+                System.out.println(p.getId() + ". " + p.getTipoDeporte().getNombre() + " en " + p.getUbicacion())
+        );
+        System.out.print("\nID del partido: ");
+        int idPartido = leerOpcion();
+        
+        Partido partido = partidoService.buscarPartidoPorId(idPartido).orElse(null);
+        if (partido == null || !(partido.getEstado() instanceof Finalizado)) {
+            System.out.println("⚠ ID de partido inválido o no está finalizado.");
+            return;
+        }
+
+        // 3. Seleccionar Usuario que comenta (cualquier usuario)
+        System.out.println("\n--- Seleccionar Usuario (Autor) ---");
+        cuentaService.obtenerTodasLasCuentas().forEach(u -> 
+            System.out.println(u.getId() + ". " + u.getNombre())
+        );
+        System.out.print("\nID del usuario que comenta: ");
+        int idUsuario = leerOpcion();
+
+        Cuenta autor = cuentaService.buscarPorId(idUsuario).orElse(null);
+        if (autor == null) {
+            System.out.println("⚠ Usuario no encontrado.");
+            return;
+        }
+
+        // 4. Pedir texto
+        System.out.print("Escribe tu comentario: ");
+        String texto = scanner.nextLine();
+
+        // 5. Llamar al servicio
+        try {
+            // (Asumo que tu ComentarioService tiene un método así)
+            Comentario nuevoComentario = comentarioService.crearComentario(idUsuario, idPartido, texto);
+            System.out.println("\n✓ Comentario añadido exitosamente!");
+            System.out.println(nuevoComentario); // Usa el toString() de Comentario
+        } catch (Exception e) {
+            System.out.println("⚠ Error al añadir comentario: " + e.getMessage());
         }
     }
 }
