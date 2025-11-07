@@ -143,6 +143,9 @@ public class Main {
         
         System.out.print("Contraseña: ");
         String clave = scanner.nextLine();
+
+        System.out.print("su Codigo Postal (C.P): ");
+        String codigoPostal = scanner.nextLine();
         
         System.out.println("\nNivel de Juego:");
         System.out.println("  0-10  puntos = Principiante");
@@ -152,8 +155,7 @@ public class Main {
         int puntosNivel = leerOpcion();
         
         try {
-            // Se aplica la corrección del ID que hicimos antes
-            Cuenta nuevaCuenta = cuentaService.registrarCuenta(nombre, email, clave, puntosNivel);
+            Cuenta nuevaCuenta = cuentaService.registrarCuenta(nombre, email, clave, codigoPostal, puntosNivel);
             System.out.println("\n✓ Usuario registrado exitosamente!");
             System.out.println("ID: " + nuevaCuenta.getId());
             System.out.println("Nombre: " + nuevaCuenta.getNombre());
@@ -213,7 +215,12 @@ public class Main {
         String ciudad = scanner.nextLine();
         System.out.print("Dirección: ");
         String direccion = scanner.nextLine();
+        System.out.print("Código Postal: ");
+        String codigoPostal = scanner.nextLine();
         Ubicacion ubicacion = new Ubicacion(ciudad, direccion);
+        if (codigoPostal != null && !codigoPostal.isBlank()) {
+            ubicacion.setCodigoPostal(codigoPostal.trim());
+        }
 
         // Fecha y hora
         System.out.print("\nFecha del partido (dd/MM/yyyy HH:mm): ");
@@ -250,6 +257,12 @@ public class Main {
             } else {
                 nivelRequerido = new Avanzado(puntos, cuentaTemporal);
             }
+        }
+
+        // Si no se ingresó C.P. para la ubicación, usar el del organizador por defecto
+        if (ubicacion != null && (ubicacion.getCodigoPostal() == null || ubicacion.getCodigoPostal().isBlank())
+                && organizador != null) {
+            ubicacion.setCodigoPostal(organizador.getCodigoPostal());
         }
 
         try {
@@ -463,12 +476,14 @@ public class Main {
         try {
             // Crear usuario de prueba
             Cuenta cuentaPrueba = cuentaService.registrarCuenta(
-                "Usuario de Prueba", emailDest, "123", 5
+                "Usuario de Prueba", emailDest, "123", "", 5
             );
             
             // Crear partido de prueba
             Deporte deportePrueba = deporteService.obtenerTodos().get(0);
             Ubicacion ubicacionPrueba = new Ubicacion("Buenos Aires", "Av. Test 123");
+            // Usar el C.P. del usuario de prueba si existe
+            ubicacionPrueba.setCodigoPostal(cuentaPrueba.getCodigoPostal());
             
             Partido partidoPrueba = partidoService.crearPartido(
                 cuentaPrueba.getId(), 
@@ -551,6 +566,7 @@ public class Main {
             System.out.println("Email: " + c.getEmail());
             System.out.println("Nivel: " + c.getNivel().getNombre() + 
                              " (" + c.getNivel().getNivel() + " pts)");
+            System.out.println("C.P.: " + c.getCodigoPostal());
             System.out.println("Partidos creados: " + c.getPartidosCreados().size());
             System.out.println("Partidos inscritos: " + c.getPartidosInscritos().size());
         }
@@ -582,9 +598,9 @@ public class Main {
             deporteService.guardar(new Pool(7));
 
             // Cargar usuarios de ejemplo
-            cuentaService.registrarCuenta("Juan Pérez", "juan@test.com", "pass123", 15);
-            cuentaService.registrarCuenta("María García", "maria@test.com", "pass456", 25);
-            cuentaService.registrarCuenta("Luis Rodríguez", "luis@test.com", "pass789", 5);
+            cuentaService.registrarCuenta("Juan Pérez", "juan@test.com", "pass123", "1406", 15);
+            cuentaService.registrarCuenta("María García", "maria@test.com", "pass456", "1405", 25);
+            cuentaService.registrarCuenta("Luis Rodríguez", "luis@test.com", "pass789", "1600", 5);
 
             System.out.println("✓ " + deporteService.obtenerTodos().size() + " deportes cargados");
             System.out.println("✓ " + cuentaService.obtenerTodasLasCuentas().size() + " usuarios cargados");

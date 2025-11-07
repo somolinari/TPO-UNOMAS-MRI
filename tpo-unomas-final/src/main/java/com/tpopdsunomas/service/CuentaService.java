@@ -21,22 +21,29 @@ public class CuentaService {
      * Registra una nueva cuenta y asigna automáticamente el nivel según los puntos
      */
     public Cuenta registrarCuenta(String nombre, String email, String clave, int puntosNivel) {
+        // Delegar a la versión que acepta código postal, usando cadena vacía como default
+        return registrarCuenta(nombre, email, clave, "", puntosNivel);
+    }
+
+    /**
+     * Registra una nueva cuenta incluyendo código postal y asigna automáticamente el nivel según los puntos
+     */
+    public Cuenta registrarCuenta(String nombre, String email, String clave, String codigoPostal, int puntosNivel) {
         // Verificar que el email no esté registrado
         Optional<Cuenta> existente = cuentaRepo.buscarPorEmail(email);
         if (existente.isPresent()) {
             throw new IllegalArgumentException("El email ya está registrado");
         }
 
-        // Crear la cuenta
-        //int proximoId = cuentaRepo.obtenerProximoId();
-        Cuenta nuevaCuenta = new Cuenta(0, nombre, email, clave);
-        
+        // Crear la cuenta con código postal
+        Cuenta nuevaCuenta = new Cuenta(0, nombre, email, clave, codigoPostal);
+
         // Asignar nivel según los puntos (usando el patrón Strategy)
         asignarNivelSegunPuntos(nuevaCuenta, puntosNivel);
-        
+
         // Guardar en el repositorio
         cuentaRepo.guardar(nuevaCuenta);
-        
+
         return nuevaCuenta;
     }
 
