@@ -4,6 +4,7 @@ import com.tpopdsunomas.patterns.observer.IObserverNotificacion;
 import com.tpopdsunomas.patterns.state.IEstadoPartido;
 import com.tpopdsunomas.patterns.state.NecesitaJugadores;
 import com.tpopdsunomas.patterns.strategy.INivelJugador;
+import com.tpopdsunomas.patterns.strategy.validacionIngreso.IStrategyValidacionIngreso;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,6 +30,7 @@ public class Partido {
     private LocalDateTime fechaHora;
     private INivelJugador nivelRequerido;
     private List<Cuenta> jugadores;
+    private IStrategyValidacionIngreso estrategiaValidacion;
 
     public Partido() {
         this.estado = new NecesitaJugadores();
@@ -40,7 +42,7 @@ public class Partido {
 
     public Partido(int id, Deporte tipoDeporte, int cantidadJugadores, Ubicacion ubicacion,
                    String duracion, boolean cuentaConCancha, Cuenta dueno, LocalDateTime fechaHora,
-                   INivelJugador nivelRequerido) {
+                   INivelJugador nivelRequerido, IStrategyValidacionIngreso estrategiaValidacion) {
         this.id = id;
         this.tipoDeporte = tipoDeporte;
         this.cantidadJugadores = cantidadJugadores;
@@ -55,6 +57,7 @@ public class Partido {
         this.estadisticas = new ArrayList<>();
         this.comentarios = new ArrayList<>();
         this.estado = new NecesitaJugadores();
+        this.estrategiaValidacion = estrategiaValidacion;
         
         // El dueño se agrega automáticamente como jugador
         this.jugadores.add(dueno);
@@ -88,6 +91,14 @@ public class Partido {
     // Métodos de gestión de estado (delegados al patrón State)
     public void agregarJugador(Cuenta jugador) {
         this.estado.agregarJugador(this, jugador);
+    }
+
+    public IStrategyValidacionIngreso getEstrategiaValidacion() {
+        return estrategiaValidacion;
+    }
+
+    public void setEstrategiaValidacion(IStrategyValidacionIngreso estrategiaValidacion) {
+        this.estrategiaValidacion = estrategiaValidacion;
     }
     
     public void confirmar() {

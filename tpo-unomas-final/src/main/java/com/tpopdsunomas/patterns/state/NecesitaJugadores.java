@@ -2,6 +2,7 @@ package com.tpopdsunomas.patterns.state;
 
 import com.tpopdsunomas.model.Cuenta;
 import com.tpopdsunomas.model.Partido;
+import com.tpopdsunomas.patterns.strategy.validacionIngreso.IStrategyValidacionIngreso;
 
 /**
  * Patrón State - Estado inicial del partido
@@ -16,24 +17,39 @@ public class NecesitaJugadores implements IEstadoPartido {
 
     @Override
     public void agregarJugador(Partido partido, Cuenta jugador) {
-        // Se puede agregar jugador en este estado
-        if (partido.getJugadores().contains(jugador)) {
-            System.out.println("⚠ El jugador ya está en el partido");
-            return;
-        }
+        if (partido.getJugadores().contains(jugador)) {
+            throw new IllegalStateException("El jugador " + jugador.getNombre() + " ya está en el partido.");
+        }
 
-        partido.getJugadores().add(jugador);
-        jugador.agregarPartidoInscrito(partido);
-        System.out.println("✓ " + jugador.getNombre() + " se unió al partido");
-        
-        // Verificar si el partido está completo
-        if (partido.getJugadores().size() >= partido.getCantidadJugadores()) {
-            System.out.println("¡Partido completo! Transicionando a 'Armado'");
-            partido.setEstado(new Armado());
-        } else {
-            System.out.println("Jugadores: " + partido.getJugadores().size() + 
-                             "/" + partido.getCantidadJugadores());
-        }
+        if (partido.getJugadores().size() >= partido.getCantidadJugadores()) {
+            throw new IllegalStateException("El partido ya está lleno. No se pueden agregar más jugadores.");
+        }
+
+       IStrategyValidacionIngreso estrategia = partido.getEstrategiaValidacion();
+        
+        if (!estrategia.esCompatible(jugador, partido)) {
+            String msg = "El jugador '" + jugador.getNombre() + 
+                         "' (Nivel: " + jugador.getNivel().getNombre() + ") " +
+                         "no cumple con la regla del partido: '" + estrategia.getNombreRegla() + "'";
+            
+            if (partido.getNivelRequerido() != null) {
+                msg += " (Nivel requerido: " + partido.getNivelRequerido().getNombre() + ")";
+            }
+            throw new IllegalStateException(msg);
+        }
+
+        
+        partido.getJugadores().add(jugador);
+        jugador.agregarPartidoInscrito(partido);
+        System.out.println("✓ " + jugador.getNombre() + " se unió al partido");
+        
+        if (partido.getJugadores().size() >= partido.getCantidadJugadores()) {
+            System.out.println("¡Partido completo! Transicionando a 'Armado'");
+            partido.setEstado(new Armado());
+        } else {
+            System.out.println("Jugadores: " + partido.getJugadores().size() + 
+                             "/" + partido.getCantidadJugadores());
+        }
     }
 
     @Override

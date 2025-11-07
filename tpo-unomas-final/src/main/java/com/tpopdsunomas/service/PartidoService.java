@@ -8,12 +8,15 @@ import com.tpopdsunomas.patterns.observer.EmailNotificacion;
 import com.tpopdsunomas.patterns.observer.PushNotificacion;
 import com.tpopdsunomas.patterns.repo.ICuentaRepository;
 import com.tpopdsunomas.patterns.repo.IPartidoRepository;
+import com.tpopdsunomas.patterns.state.NecesitaJugadores;
 import com.tpopdsunomas.patterns.strategy.IStrategyEmparejamiento;
+import com.tpopdsunomas.patterns.strategy.validacionIngreso.IStrategyValidacionIngreso;
 import com.tpopdsunomas.patterns.strategy.INivelJugador;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Servicio de Partidos - Capa de lógica de negocio (Controlador en MVC)
@@ -32,14 +35,14 @@ public class PartidoService {
      * Crea un nuevo partido y registra observadores para notificaciones
      */
     public Partido crearPartido(int idDueno, Deporte deporte, int cantJugadores,
-                                LocalDateTime fechaHora, INivelJugador nivelRequerido) {
+                                LocalDateTime fechaHora, INivelJugador nivelRequerido, IStrategyValidacionIngreso estrategiaValidacion) {
         return crearPartido(idDueno, deporte, cantJugadores, null, 
-                          "90 minutos", false, fechaHora, nivelRequerido);
+                          "90 minutos", false, fechaHora, nivelRequerido, estrategiaValidacion);
     }
 
     public Partido crearPartido(int idDueno, Deporte deporte, int cantJugadores,
                                 Ubicacion ubicacion, String duracion, boolean cuentaConCancha,
-                                LocalDateTime fechaHora, INivelJugador nivelRequerido) {
+                                LocalDateTime fechaHora, INivelJugador nivelRequerido, IStrategyValidacionIngreso estrategiaValidacion) {
         // Buscar el dueño
         Cuenta dueno = cuentaRepo.buscarPorId(idDueno)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
@@ -47,7 +50,7 @@ public class PartidoService {
         // Crear el partido
         //int proximoId = partidoRepo.obtenerProximoId();
         Partido partido = new Partido(0, deporte, cantJugadores, ubicacion,
-                                      duracion, cuentaConCancha, dueno, fechaHora, nivelRequerido);
+                                      duracion, cuentaConCancha, dueno, fechaHora, nivelRequerido, estrategiaValidacion);
 
         // Registrar observadores (Observer pattern)
         partido.agregarObservador(new EmailNotificacion());
@@ -106,8 +109,10 @@ public class PartidoService {
         Cuenta buscador = cuentaRepo.buscarPorId(idUsuario)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         
-        List<Partido> todosLosPartidos = partidoRepo.buscarDisponibles();
-        return estrategia.buscar(buscador, todosLosPartidos);
+        List<Partido> partidosDisponibles = partidoRepo.buscarTodos().stream()
+            .filter(p -> p.getEstado() instanceof NecesitaJugadores)
+            .collect(Collectors.toList());
+        return estrategia.buscar(buscador, partidosDisponibles);
     }
 
     /**
