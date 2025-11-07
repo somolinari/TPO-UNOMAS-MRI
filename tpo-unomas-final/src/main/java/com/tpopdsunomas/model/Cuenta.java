@@ -18,12 +18,18 @@ public class Cuenta {
     private List<Ubicacion> ubicaciones;
     private List<Partido> partidosCreados;
     private List<Partido> partidosInscritos;
+    private String codigoPostal;
     
     public Cuenta(int id, String nombre, String email, String clave) {
+        this(id, nombre, email, clave, "");
+    }
+
+    public Cuenta(int id, String nombre, String email, String clave, String codigoPostal) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
         this.clave = clave;
+        this.codigoPostal = codigoPostal;
         this.ubicaciones = new ArrayList<>();
         this.partidosCreados = new ArrayList<>();
         this.partidosInscritos = new ArrayList<>();
@@ -92,6 +98,14 @@ public class Cuenta {
     
     public void setDeporteFavorito(Deporte deporte) {
         this.deporteFavorito = deporte;
+    }
+
+    public String getCodigoPostal() {
+        return codigoPostal;
+    }
+
+    public void setCodigoPostal(String codigoPostal) {
+        this.codigoPostal = codigoPostal;
     }
     
     public List<Ubicacion> getUbicaciones() {

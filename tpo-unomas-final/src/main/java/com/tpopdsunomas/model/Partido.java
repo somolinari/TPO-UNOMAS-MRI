@@ -19,6 +19,7 @@ public class Partido {
     private int cantidadJugadores;
     private Deporte tipoDeporte;
     private Ubicacion ubicacion;
+    private String codigoPostal;
     private String duracion; // Por ejemplo: "90 minutos"
     private boolean cuentaConCancha;
     private Cuenta dueno;
@@ -36,6 +37,7 @@ public class Partido {
         this.observers = new ArrayList<>();
         this.estadisticas = new ArrayList<>();
         this.comentarios = new ArrayList<>();
+        this.codigoPostal = "";
     }
 
     public Partido(int id, Deporte tipoDeporte, int cantidadJugadores, Ubicacion ubicacion,
@@ -59,6 +61,8 @@ public class Partido {
         // El dueño se agrega automáticamente como jugador
         this.jugadores.add(dueno);
         dueno.agregarPartidoCreado(this);
+    this.codigoPostal = (ubicacion != null && ubicacion.getCodigoPostal() != null)
+        ? ubicacion.getCodigoPostal() : "";
     }
 
     // Métodos del patrón Observer
@@ -150,6 +154,19 @@ public class Partido {
     
     public void setUbicacion(Ubicacion ubicacion) {
         this.ubicacion = ubicacion;
+        this.codigoPostal = (ubicacion != null && ubicacion.getCodigoPostal() != null)
+                ? ubicacion.getCodigoPostal() : "";
+    }
+
+    public String getCodigoPostal() {
+        return codigoPostal;
+    }
+
+    public void setCodigoPostal(String codigoPostal) {
+        this.codigoPostal = codigoPostal;
+        if (this.ubicacion != null) {
+            this.ubicacion.setCodigoPostal(codigoPostal);
+        }
     }
     
     public String getDuracion() {
@@ -219,6 +236,7 @@ public class Partido {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         return "Partido #" + id + " - " + tipoDeporte.getNombre() + 
                "\nUbicación: " + (ubicacion != null ? ubicacion : "No especificada") +
+               (codigoPostal != null && !codigoPostal.isEmpty() ? ("\nC.P.: " + codigoPostal) : "") +
                "\nFecha: " + fechaHora.format(formatter) +
                "\nJugadores: " + jugadores.size() + "/" + cantidadJugadores +
                "\nEstado: " + estado.getNombre() +
