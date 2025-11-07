@@ -29,12 +29,12 @@ public class EmparejamientoPorCercania implements IStrategyEmparejamiento {
         System.out.println("Radio máximo: " + radioMaximoKm + " km");
         
         // Verificar que el buscador tenga ubicación
-        if (buscador.getUbicaciones().isEmpty()) {
+        if (buscador.getUbicacion() != null) {
             System.out.println("⚠ El buscador no tiene ubicaciones registradas");
             return partidosCercanos;
         }
         
-        Ubicacion ubicacionBuscador = buscador.getUbicaciones().get(0);
+        Ubicacion ubicacionBuscador = buscador.getUbicacion();
         
         // Filtrar partidos por distancia
         for (Partido partido : partidosDisponibles) {

@@ -15,7 +15,7 @@ public class Cuenta {
     private String clave;
     private INivelJugador nivel;
     private Deporte deporteFavorito;
-    private List<Ubicacion> ubicaciones;
+    private Ubicacion ubicacion;
     private List<Partido> partidosCreados;
     private List<Partido> partidosInscritos;
     
@@ -24,7 +24,6 @@ public class Cuenta {
         this.nombre = nombre;
         this.email = email;
         this.clave = clave;
-        this.ubicaciones = new ArrayList<>();
         this.partidosCreados = new ArrayList<>();
         this.partidosInscritos = new ArrayList<>();
     }
@@ -94,14 +93,12 @@ public class Cuenta {
         this.deporteFavorito = deporte;
     }
     
-    public List<Ubicacion> getUbicaciones() {
-        return ubicaciones;
+    public Ubicacion getUbicacion() {
+        return ubicacion;
     }
     
-    public void agregarUbicacion(Ubicacion ubicacion) {
-        if (!ubicaciones.contains(ubicacion)) {
-            ubicaciones.add(ubicacion);
-        }
+    public void setUbicacion(Ubicacion ubicacion) {
+        this.ubicacion = ubicacion;
     }
     
     public List<Partido> getPartidosCreados() {

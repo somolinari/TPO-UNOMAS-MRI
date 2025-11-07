@@ -4,56 +4,36 @@ import com.tpopdsunomas.model.Ubicacion;
 
 public class OpenStreetMapAdapter implements IGeolocalizacionAdapter {
 
-    @Override
+   @Override
     public double calcularDistancia(Ubicacion origen, Ubicacion destino) throws Exception {
         
-        // 1. Obtener coordenadas de la Ubicacion de origen
-        double[] coordsOrigen = obtenerCoordenadas(origen);
+        // 1. Asegurarse de que el origen tenga coordenadas
+        asegurarCoordenadas(origen);
         
-        // 2. Obtener coordenadas de la Ubicacion de destino
-        double[] coordsDestino = obtenerCoordenadas(destino);
+        // 2. Asegurarse de que el destino tenga coordenadas
+        asegurarCoordenadas(destino);
 
-        // 3. Calcular la distancia (la parte que te faltaba)
-        return calcularDistanciaHaversine(coordsOrigen[0], coordsOrigen[1], coordsDestino[0], coordsDestino[1]);
+        // 3. ¡DELEGAR el cálculo a tu clase Ubicacion!
+        // Ya no calculamos Haversine aquí.
+        return origen.calcularDistancia(destino);
     }
 
     /**
-     * Método privado que usa tu clase Geolocation para obtener lat/lon.
-     * Esto "oculta" la complejidad.
+     * Método helper privado que "oculta" la complejidad de Geolocation.
+     * Si la ubicación no tiene lat/lon, llama a la API para obtenerlos.
      */
-    private double[] obtenerCoordenadas(Ubicacion u) throws Exception {
-        // Si la ubicación ya tiene lat/lon, los usamos.
-        if (u.getLatitud() != 0 && u.getLongitud() != 0) {
-            return new double[]{u.getLatitud(), u.getLongitud()};
+    private void asegurarCoordenadas(Ubicacion ubicacion) throws Exception {
+        // Si la latitud es 0.0 (o no está seteada), asumimos que necesita geocodificación
+        if (ubicacion.getLatitud() == 0.0 || ubicacion.getLongitud() == 0.0) {
+            
+            System.out.println("ADAPTADOR: Geocodificando dirección: " + ubicacion.getDireccionCompletaParaAPI());
+            
+            // 1. Llama a tu clase Geolocation (el Adaptee)
+            double[] coords = Geolocation.geocodeAddress(ubicacion.getDireccionCompletaParaAPI());
+            
+            // 2. Actualiza el objeto Ubicacion con los datos obtenidos
+            ubicacion.setLatitud(coords[0]);
+            ubicacion.setLongitud(coords[1]);
         }
-        
-        // Si no, usamos tu clase Geolocation para buscarlos
-        // (Asumiendo que Ubicacion tiene getDireccionCompleta())
-        double[] coords = Geolocation.geocodeAddress(u.getDireccionCompleta());
-        
-        // Opcional: Guardar las coordenadas en la ubicación para no buscarlas de nuevo
-        u.setLatitud(coords[0]);
-        u.setLongitud(coords[1]);
-        
-        return coords;
-    }
-
-    /**
-     * FÓRMULA DE HAVERSINE
-     * Calcula la distancia en KM entre dos puntos (lat/lon) en la Tierra.
-     */
-    private double calcularDistanciaHaversine(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Radio de la Tierra en kilómetros
-
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        
-        return R * c; // Distancia en KM
     }
 }

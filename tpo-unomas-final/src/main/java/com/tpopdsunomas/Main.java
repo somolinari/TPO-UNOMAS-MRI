@@ -9,6 +9,9 @@ import com.tpopdsunomas.model.*;
 import com.tpopdsunomas.patterns.repo.*;
 import com.tpopdsunomas.patterns.state.*;
 import com.tpopdsunomas.patterns.strategy.*;
+import com.tpopdsunomas.patterns.strategy.validacionIngreso.IStrategyValidacionIngreso;
+import com.tpopdsunomas.patterns.strategy.validacionIngreso.ValidacionEstrictaPorNivel;
+import com.tpopdsunomas.patterns.strategy.validacionIngreso.ValidacionPorCercania;
 import com.tpopdsunomas.service.*;
 
 /**
@@ -64,7 +67,7 @@ public class Main {
                     mostrarUsuarios();
                     break;
                 case 9:
-                    probarEnvioEmail();
+                    //probarEnvioEmail();
                     break;
                 case 10:
                     mostrarDeportes();
@@ -185,12 +188,13 @@ public class Main {
             cantJugadores = deporteSeleccionado.getCantidadJugadoresPorDefecto();
         }
 
-        // Ubicación
-        System.out.print("\nCiudad: ");
-        String ciudad = scanner.nextLine();
-        System.out.print("Dirección: ");
-        String direccion = scanner.nextLine();
-        Ubicacion ubicacion = new Ubicacion(ciudad, direccion);
+        System.out.println("\n--- Ubicación del Partido ---");
+    System.out.print("Ciudad: ");
+    String ciudadPartido = scanner.nextLine();
+    System.out.print("Dirección: ");
+    String dirPartido = scanner.nextLine();
+    // (Asegúrate que tu clase Ubicacion tenga este constructor)
+    Ubicacion ubicacionPartido = new Ubicacion(ciudadPartido, dirPartido);
 
         // Fecha y hora
         System.out.print("\nFecha del partido (dd/MM/yyyy HH:mm): ");
@@ -204,43 +208,73 @@ public class Main {
             fechaHora = LocalDateTime.now().plusDays(1);
         }
 
-        // Nivel requerido
-        System.out.println("\n--- Nivel Requerido ---");
-        System.out.println("1. Principiante");
-        System.out.println("2. Intermedio");
-        System.out.println("3. Avanzado");
-        System.out.println("4. Sin restricción de nivel");
-        System.out.print("Seleccione opción: ");
-        int opNivel = leerOpcion();
+        // --- 4. PREGUNTAR POR LA REGLA DE VALIDACIÓN (¡ESTA ES LA PARTE NUEVA!) ---
+    System.out.println("\n--- Regla de Validación de Ingreso (RF5.c) ---");
+    System.out.println("1. Abierto a todos (Default)");
+    System.out.println("2. Estricto por Nivel");
+    System.out.println("3. Estricto por Cercanía (Ubicación)");
+    System.out.print("Seleccione la regla del partido: ");
+    int opRegla = leerOpcion();
 
-        INivelJugador nivelRequerido = null;
-        Cuenta organizador = cuentaService.buscarPorId(idOrganizador).orElse(null);
-        
-        if (opNivel >= 1 && opNivel <= 3 && organizador != null) {
+    INivelJugador nivelRequerido = null;
+    IStrategyValidacionIngreso estrategiaDeValidacion; // La variable clave
+
+    switch (opRegla) {
+        case 2:
+            // --- Lógica para Nivel ---
+            System.out.println("\n--- Nivel Requerido para el Partido ---");
+            System.out.println("1. Principiante");
+            System.out.println("2. Intermedio");
+            System.out.println("3. Avanzado");
+            System.out.print("Seleccione nivel: ");
+            int opNivel = leerOpcion();
+            
             int puntos = (opNivel == 1) ? 5 : (opNivel == 2) ? 15 : 25;
-            // Crear instancia temporal solo para el nivel requerido
-            Cuenta cuentaTemporal = new Cuenta(0, "Temp", "temp@temp.com", "temp");
-            if (opNivel == 1) {
-                nivelRequerido = new Principiante(puntos, cuentaTemporal);
-            } else if (opNivel == 2) {
-                nivelRequerido = new Intermedio(puntos, cuentaTemporal);
-            } else {
-                nivelRequerido = new Avanzado(puntos, cuentaTemporal);
-            }
-        }
+            Cuenta dummy = new Cuenta(0, "dummy", "dummy", "dummy");
+            nivelRequerido = dummy.getNivel();
+            
+            estrategiaDeValidacion = new ValidacionEstrictaPorNivel();
+            break;
 
-        try {
-            Partido partido = partidoService.crearPartido(
-                idOrganizador, deporteSeleccionado, cantJugadores, ubicacion,
-                "90 minutos", false, fechaHora, nivelRequerido
-            );
+        case 3:
+            // --- Lógica para Cercanía ---
+            System.out.print("\nDistancia máxima en KM para unirse (ej: 10): ");
+            double radio = Double.parseDouble(scanner.nextLine());
+            
+            estrategiaDeValidacion = new ValidacionPorCercania(radio);
+            break;
+            
+        case 1:
+        default:
+            // --- Lógica Permisiva (Default) ---
+            estrategiaDeValidacion = new ValidacionEstrictaPorNivel();
+            break;
+    }
+    System.out.println("Regla del partido: " + estrategiaDeValidacion.getNombreRegla());
 
-            System.out.println("\n✓ Partido creado exitosamente!");
-            System.out.println(partido);
-        } catch (Exception e) {
-            System.out.println("⚠ Error al crear partido: " + e.getMessage());
-            e.printStackTrace();
-        }
+
+    // --- 5. LLAMAR AL SERVICIO (¡CORREGIDO!) ---
+    // Ahora le pasamos los 9 argumentos que espera
+    
+    try {
+        Partido partido = partidoService.crearPartido(
+                idOrganizador,
+                deporteSeleccionado,
+                cantJugadores,
+                fechaHora,
+                nivelRequerido, // (será null si no se eligió opNivel)
+                estrategiaDeValidacion // <-- ¡EL ARGUMENTO QUE FALTABA!
+        );
+        partido.setUbicacion(ubicacionPartido);
+
+        System.out.println("\n✓ Partido creado exitosamente: " + partido.getId());
+        System.out.println("Estado inicial: " + partido.getEstado().getNombre());
+        System.out.println("Regla de ingreso: " + partido.getEstrategiaValidacion().getNombreRegla());
+
+    } catch (Exception e) {
+        System.out.println("⚠ Error al crear partido: " + e.getMessage());
+        e.printStackTrace();
+    }
     }
 
     private static void unirseAPartido() {
@@ -417,7 +451,7 @@ public class Main {
         }
     }
 
-    private static void probarEnvioEmail() {
+    /*private static void probarEnvioEmail() {
         System.out.println("\n═══ 🔥 PRUEBA DE ENVÍO DE EMAIL REAL ═══");
         System.out.print("Email destinatario de prueba: ");
         String emailDest = scanner.nextLine();
@@ -455,7 +489,7 @@ public class Main {
             System.out.println("⚠ Error: " + e.getMessage());
             e.printStackTrace();
         }
-    }
+    }*/
 
     private static void mostrarPartidos() {
         System.out.println("\n═══ LISTA DE PARTIDOS ═══");

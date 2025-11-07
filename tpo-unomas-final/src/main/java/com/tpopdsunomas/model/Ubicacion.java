@@ -54,6 +54,15 @@ public class Ubicacion {
         return R * c;
     }
 
+    public String getDireccionCompletaParaAPI() {
+    String direccionCompleta = this.direccion + ", " + this.ciudad;
+    if (this.codigoPostal != null && !this.codigoPostal.isEmpty()) {
+        direccionCompleta += ", " + this.codigoPostal;
+    }
+    // Opcional: puedes agregar ", Argentina" para mejorar la precisión
+    return direccionCompleta + ", Argentina";
+}
+
     // Getters y Setters
     public String getCiudad() {
         return ciudad;
