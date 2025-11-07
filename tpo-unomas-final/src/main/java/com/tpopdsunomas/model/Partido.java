@@ -54,11 +54,18 @@ public class Partido {
         this.observers = new ArrayList<>();
         this.estadisticas = new ArrayList<>();
         this.comentarios = new ArrayList<>();
+        
+        // 1. Establecer el estado ANTES de añadir jugadores
         this.estado = new NecesitaJugadores();
         
-        // El dueño se agrega automáticamente como jugador
-        this.jugadores.add(dueno);
+        // 2. Registrar al dueño como creador
         dueno.agregarPartidoCreado(this);
+
+        // 3. 🔽 CORRECCIÓN 🔽
+        // Usar el método de estado para añadir al dueño como primer jugador.
+        // Esto ejecutará la lógica de NecesitaJugadores.java
+        // y comprobará si el partido se llena (ej: 1/1).
+        this.estado.agregarJugador(this, dueno); 
     }
 
     // Métodos del patrón Observer
