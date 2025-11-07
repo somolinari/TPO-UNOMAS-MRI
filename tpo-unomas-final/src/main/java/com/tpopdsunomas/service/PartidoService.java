@@ -45,8 +45,8 @@ public class PartidoService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         // Crear el partido
-        int proximoId = partidoRepo.obtenerProximoId();
-        Partido partido = new Partido(proximoId, deporte, cantJugadores, ubicacion,
+        //int proximoId = partidoRepo.obtenerProximoId();
+        Partido partido = new Partido(0, deporte, cantJugadores, ubicacion,
                                       duracion, cuentaConCancha, dueno, fechaHora, nivelRequerido);
 
         // Registrar observadores (Observer pattern)

@@ -105,6 +105,7 @@ public class Main {
         System.out.println("8.  Ver todos los usuarios");
         System.out.println("9.  🔥 Probar envío de email real");
         System.out.println("10. Ver deportes disponibles");
+        System.out.println("11. Ver estadisticas");
         System.out.println("0.  Salir");
         System.out.print("Seleccione una opción: ");
     }

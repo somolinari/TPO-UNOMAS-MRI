@@ -28,8 +28,8 @@ public class CuentaService {
         }
 
         // Crear la cuenta
-        int proximoId = cuentaRepo.obtenerProximoId();
-        Cuenta nuevaCuenta = new Cuenta(proximoId, nombre, email, clave);
+        //int proximoId = cuentaRepo.obtenerProximoId();
+        Cuenta nuevaCuenta = new Cuenta(0, nombre, email, clave);
         
         // Asignar nivel según los puntos (usando el patrón Strategy)
         asignarNivelSegunPuntos(nuevaCuenta, puntosNivel);
