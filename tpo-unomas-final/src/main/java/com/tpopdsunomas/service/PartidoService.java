@@ -32,13 +32,13 @@ public class PartidoService {
      * Crea un nuevo partido y registra observadores para notificaciones
      */
     public Partido crearPartido(int idDueno, Deporte deporte, int cantJugadores,
-                                LocalDateTime fechaHora, INivelJugador nivelRequerido) {
+                                LocalDateTime fechaHora, INivelJugador nivelRequerido, int duracion) {
         return crearPartido(idDueno, deporte, cantJugadores, null, 
-                          "90 minutos", false, fechaHora, nivelRequerido);
+                          duracion, false, fechaHora, nivelRequerido);
     }
 
     public Partido crearPartido(int idDueno, Deporte deporte, int cantJugadores,
-                                Ubicacion ubicacion, String duracion, boolean cuentaConCancha,
+                                Ubicacion ubicacion, int duracion, boolean cuentaConCancha,
                                 LocalDateTime fechaHora, INivelJugador nivelRequerido) {
         // Buscar el dueño
         Cuenta dueno = cuentaRepo.buscarPorId(idDueno)
@@ -82,8 +82,11 @@ public class PartidoService {
         }
 
         // Agregar jugador (el estado maneja la lógica)
-        partido.agregarJugador(jugador);
-        
+        Boolean disponibilidad = partido.agregarJugador(jugador);
+
+        if (!disponibilidad) {
+            throw new IllegalArgumentException("Tenes conflictos de horario con otro partido");
+            }
         // Actualizar el partido en el repositorio
         partidoRepo.actualizar(partido);
     }
