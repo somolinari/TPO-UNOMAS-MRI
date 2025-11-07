@@ -142,4 +142,9 @@ public class Cuenta {
     public int hashCode() {
         return Integer.hashCode(id);
     }
+
+    public String getCuenta() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getCuenta'");
+    }
 }
