@@ -63,7 +63,7 @@ public class Partido {
         // 2. Registrar al dueño como creador
         dueno.agregarPartidoCreado(this);
 
-        // 3. 🔽 CORRECCIÓN 🔽
+        // 3. // CORRECCIÓN //
         // Usar el método de estado para añadir al dueño como primer jugador.
         // Esto ejecutará la lógica de NecesitaJugadores.java
         // y comprobará si el partido se llena (ej: 1/1).

@@ -20,7 +20,7 @@ public class Main {
     private static ICuentaRepository cuentaRepo = new CuentaRepoLocal();
     private static IPartidoRepository partidoRepo = new PartidoRepoLocal();
     private static IDeporteRepository deporteRepo = new DeporteRepoLocal();
-    // 🔽 AÑADIDO 🔽
+
     private static IEstadisticaRepository estadisticaRepo = new EstadisticaRepoLocal();
     private static IComentarioRepository comentarioRepo = new ComentarioRepoLocal();
 
@@ -28,7 +28,7 @@ public class Main {
     private static CuentaService cuentaService = new CuentaService(cuentaRepo);
     private static PartidoService partidoService = new PartidoService(partidoRepo, cuentaRepo);
     private static DeporteService deporteService = new DeporteService(deporteRepo);
-    // 🔽 AÑADIDO 🔽 (Ajusta los constructores si es necesario)
+//(Ajusta los constructores si es necesario)
     private static EstadisticaService estadisticaService = new EstadisticaService(estadisticaRepo, cuentaRepo, partidoRepo);
     private static ComentarioService comentarioService = new ComentarioService(comentarioRepo, cuentaRepo, partidoRepo);
 
@@ -62,25 +62,22 @@ public class Main {
                     buscarPartidosConEstrategia();
                     break;
                 case 6:
-                    forzarNotificacion();
-                    break;
-                case 7:
                     mostrarPartidos();
                     break;
-                case 8:
+                case 7:
                     mostrarUsuarios();
                     break;
-                case 9:
+                case 8:
                     probarEnvioEmail();
                     break;
-                case 10:
+                case 9:
                     mostrarDeportes();
                     break;
-                // 🔽 AÑADIDO 🔽
-                case 11:
+                // //  
+                case 10:
                     registrarEstadisticas();
                     break;
-                case 12:
+                case 11:
                     agregarComentario();
                     break;
                 case 0:
@@ -96,15 +93,9 @@ public class Main {
 
     private static void mostrarBanner() {
         System.out.println("╔═══════════════════════════════════════════════════╗");
-        System.out.println("║     SISTEMA UNO MAS - GESTIÓN DE PARTIDOS        ║");
-        System.out.println("║         Arquitectura MVC + Patrones de Diseño    ║");
+        System.out.println("║     SISTEMA UNO MAS - GESTIÓN DE PARTIDOS         ║");
+        System.out.println("║                                                   ║");
         System.out.println("╚═══════════════════════════════════════════════════╝");
-        System.out.println("\n✓ Patrones implementados:");
-        System.out.println("  • State (Estados del Partido)");
-        System.out.println("  • Strategy (Emparejamiento y Niveles)");
-        System.out.println("  • Observer (Notificaciones)");
-        System.out.println("  • Adapter (JavaMailSender y OpenStreetMap)");
-        System.out.println("  • Repository (Persistencia de datos)\n");
     }
 
     private static void mostrarMenuPrincipal() {
@@ -113,14 +104,13 @@ public class Main {
         System.out.println("2.  Crear nuevo partido");
         System.out.println("3.  Unirse a un partido");
         System.out.println("4.  Gestionar estado de partido");
-        System.out.println("5.  Buscar partidos (Estrategias)");
-        System.out.println("6.  Forzar notificación (Patrón Observer)");
-        System.out.println("7.  Ver todos los partidos");
-        System.out.println("8.  Ver todos los usuarios");
-        System.out.println("9.  🔥 Probar envío de email real");
-        System.out.println("10. Ver deportes disponibles");
-        System.out.println("11. Registrar estadísticas de partido (Finalizado)");
-        System.out.println("12. Añadir comentario a partido (Finalizado)");
+        System.out.println("5.  Buscar partidos ");
+        System.out.println("6.  Ver todos los partidos");
+        System.out.println("7.  Ver todos los usuarios");
+        System.out.println("8.  Envío de email real");
+        System.out.println("9.  Ver deportes disponibles");
+        System.out.println("10. Registrar estadísticas de partido finalizado");
+        System.out.println("11. Añadir comentario de partido finalizado");
         System.out.println("0.  Salir");
         System.out.print("Seleccione una opción: ");
     }
@@ -182,7 +172,7 @@ public class Main {
         System.out.print("ID del organizador: ");
         int idOrganizador = leerOpcion();
         
-        // 🔽 VALIDACIÓN AÑADIDA (Recomendación anterior) 🔽
+        // // VALIDACIÓN AÑADIDA (Recomendación anterior) //
         Cuenta organizador = cuentaService.buscarPorId(idOrganizador).orElse(null);
         if (organizador == null) {
             System.out.println("⚠ Usuario organizador no encontrado. Volviendo al menú.");
@@ -354,7 +344,7 @@ public class Main {
                     break;
                 case 3:
                     partidoService.finalizarPartido(idPartido);
-                    System.out.println("✓ Partido finalizado. Ahora puedes registrar estadísticas (Opción 11) y comentarios (Opción 12).");
+                    System.out.println("✓ Partido finalizado. Ahora puedes registrar estadísticas (Opción 10) y comentarios (Opción 11).");
                     break;
                 case 4:
                     partidoService.cancelarPartido(idPartido);
@@ -367,7 +357,7 @@ public class Main {
         }
     }
 
-    // 🔽 RECOMENDACIÓN: Método para leer doubles 🔽
+    // // RECOMENDACIÓN: Método para leer doubles //
     private static double leerDouble() {
         try {
             return Double.parseDouble(scanner.nextLine());
@@ -411,7 +401,7 @@ public class Main {
                 estrategia = new EmparejamientoPorNivel();
                 break;
             case 2:
-                // 🔽 CORRECCIÓN: Usar leerDouble() 🔽
+                // // CORRECCIÓN: Usar leerDouble() //
                 System.out.print("Radio máximo en kilómetros (ej: 10.5): ");
                 double radio = leerDouble(); // Usar el nuevo método
                 if (radio <= 0) {
@@ -441,35 +431,9 @@ public class Main {
         }
     }
 
-    private static void forzarNotificacion() {
-        System.out.println("\n═══ FORZAR NOTIFICACIÓN (Observer) ═══");
-        
-        List<Partido> partidos = partidoService.obtenerTodosLosPartidos();
-        if (partidos.isEmpty()) {
-            System.out.println("⚠ No hay partidos");
-            return;
-        }
-
-        System.out.println("\n--- Partidos ---");
-        partidos.forEach(p -> 
-            System.out.println(p.getId() + ". " + p.getTipoDeporte().getNombre() + 
-                             " (" + p.getJugadores().size() + " jugadores)")
-        );
-        
-        System.out.print("\nID del partido a notificar: ");
-        int idPartido = leerOpcion();
-
-        System.out.println("\n¡Forzando notificación a todos los participantes!");
-        try {
-            partidoService.notificarObservadores(idPartido);
-            System.out.println("\n✓ Notificación enviada");
-        } catch (Exception e) {
-            System.out.println("⚠ Error: " + e.getMessage());
-        }
-    }
 
     private static void probarEnvioEmail() {
-        System.out.println("\n═══ 🔥 PRUEBA DE ENVÍO DE EMAIL REAL ═══");
+        System.out.println("\n═══  PRUEBA DE ENVÍO DE EMAIL REAL ═══");
         System.out.print("Email destinatario de prueba: ");
         String emailDest = scanner.nextLine();
 
@@ -500,7 +464,7 @@ public class Main {
             partidoService.unirseAPartido(partidoPrueba.getId(), cuentaPrueba.getId());
             
             // Forzar notificación
-            System.out.println("\n📧 Enviando email de prueba...");
+            System.out.println("\n Enviando email de prueba...");
             partidoService.notificarObservadores(partidoPrueba.getId());
             
             System.out.println("\n✓ Si no hubo errores, revisa la bandeja de: " + emailDest);
@@ -528,7 +492,7 @@ public class Main {
                 System.out.println("  - " + j.getNombre() + " (" + j.getNivel().getNombre() + ")")
             );
 
-            // 🔽 AÑADIDO: Mostrar Estadísticas y Comentarios 🔽
+            // // Mostrar Estadísticas y Comentarios //
             System.out.println("Estadísticas:");
             // (Asumo que tu service tiene este método)
             List<Estadistica> stats = estadisticaService.obtenerEstadisticasPorPartido(p.getId());
@@ -598,9 +562,10 @@ public class Main {
             deporteService.guardar(new Pool(7));
 
             // Cargar usuarios de ejemplo
-            cuentaService.registrarCuenta("Juan Pérez", "juan@test.com", "pass123", "1406", 15);
-            cuentaService.registrarCuenta("María García", "maria@test.com", "pass456", "1405", 25);
-            cuentaService.registrarCuenta("Luis Rodríguez", "luis@test.com", "pass789", "1600", 5);
+            cuentaService.registrarCuenta("Sofia Molinari", "somolinari@uade.edu.ar", "123", "1900", 15);
+            cuentaService.registrarCuenta("Kevin Cazon", "cazonleonel@gmail.com", "456", "1405", 25);
+            cuentaService.registrarCuenta("Alejandro Valente", "alvalente@uade.edu.ar", "789", "1600", 5);
+            cuentaService.registrarCuenta("Ornella Facciolla", "ofacciola@uade.edu.ar", "789", "1600", 5);
 
             System.out.println("✓ " + deporteService.obtenerTodos().size() + " deportes cargados");
             System.out.println("✓ " + cuentaService.obtenerTodasLasCuentas().size() + " usuarios cargados");
@@ -613,8 +578,7 @@ public class Main {
         }
     }
 
-    // 🔽🔽🔽 MÉTODOS NUEVOS AÑADIDOS 🔽🔽🔽
-
+    //  MÉTODOS NUEVOS AÑADIDOS 
     /**
      * Permite registrar estadísticas para un jugador en un partido finalizado.
      */

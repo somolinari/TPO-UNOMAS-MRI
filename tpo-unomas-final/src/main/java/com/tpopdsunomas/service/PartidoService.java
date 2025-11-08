@@ -45,7 +45,7 @@ public class PartidoService {
         Cuenta dueno = cuentaRepo.buscarPorId(idDueno)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        // 🔽🔽 CORRECCIÓN 🔽🔽
+        // //// CORRECCIÓN ////
         // Se crea el partido con ID 0. El repositorio le asignará el ID correcto.
         Partido partido = new Partido(0, deporte, cantJugadores, ubicacion,
                                       duracion, cuentaConCancha, dueno, fechaHora, nivelRequerido);
