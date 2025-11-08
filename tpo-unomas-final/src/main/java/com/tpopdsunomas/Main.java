@@ -258,7 +258,7 @@ public class Main {
         try {
             Partido partido = partidoService.crearPartido(
                 idOrganizador, deporteSeleccionado, cantJugadores, ubicacion,
-                "90 minutos", false, fechaHora, nivelRequerido
+                90, false, fechaHora, nivelRequerido
             );
 
             System.out.println("\n✓ Partido creado exitosamente!");
@@ -454,7 +454,7 @@ public class Main {
                 deportePrueba, 
                 10,
                 ubicacionPrueba,
-                "90 minutos",
+                90,
                 false,
                 LocalDateTime.now().plusDays(1),
                 new Principiante(5, cuentaPrueba)
@@ -566,6 +566,17 @@ public class Main {
             cuentaService.registrarCuenta("Kevin Cazon", "cazonleonel@gmail.com", "456", "1405", 25);
             cuentaService.registrarCuenta("Alejandro Valente", "alvalente@uade.edu.ar", "789", "1600", 5);
             cuentaService.registrarCuenta("Ornella Facciolla", "ofacciola@uade.edu.ar", "789", "1600", 5);
+
+            LocalDateTime startPartido1 = LocalDateTime.of(2025, 11, 1, 10, 0);
+            LocalDateTime startPartido2 = LocalDateTime.of(2025, 11, 1, 11, 0);
+
+                        
+            Deporte deporteSeleccionado = deporteService.buscarPorId(1).orElse(null);
+            // Partidos usuarios de ejemplo
+            partidoService.crearPartido(1, deporteSeleccionado, 10, startPartido1, 
+                null, 90);
+            partidoService.crearPartido(2, deporteSeleccionado, 10, startPartido2, 
+                null, 90);
 
             System.out.println("✓ " + deporteService.obtenerTodos().size() + " deportes cargados");
             System.out.println("✓ " + cuentaService.obtenerTodasLasCuentas().size() + " usuarios cargados");

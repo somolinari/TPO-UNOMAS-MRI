@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Clase Partido
@@ -20,7 +21,7 @@ public class Partido {
     private Deporte tipoDeporte;
     private Ubicacion ubicacion;
     private String codigoPostal;
-    private String duracion; // Por ejemplo: "90 minutos"
+    private int duracion; // Por ejemplo: "90 minutos"
     private boolean cuentaConCancha;
     private Cuenta dueno;
     private IEstadoPartido estado;
@@ -30,6 +31,7 @@ public class Partido {
     private LocalDateTime fechaHora;
     private INivelJugador nivelRequerido;
     private List<Cuenta> jugadores;
+    
 
     public Partido() {
         this.estado = new NecesitaJugadores();
@@ -41,7 +43,7 @@ public class Partido {
     }
 
     public Partido(int id, Deporte tipoDeporte, int cantidadJugadores, Ubicacion ubicacion,
-                   String duracion, boolean cuentaConCancha, Cuenta dueno, LocalDateTime fechaHora,
+                   int duracion, boolean cuentaConCancha, Cuenta dueno, LocalDateTime fechaHora,
                    INivelJugador nivelRequerido) {
         this.id = id;
         this.tipoDeporte = tipoDeporte;
@@ -97,10 +99,55 @@ public class Partido {
     }
 
     // Métodos de gestión de estado (delegados al patrón State)
-    public void agregarJugador(Cuenta jugador) {
-        this.estado.agregarJugador(this, jugador);
+    public Boolean agregarJugador(Cuenta jugador) {
+
+        LocalDateTime fechaInicial = this.fechaHora;
+        LocalDateTime fechaFinal = this.fechaHora.plusMinutes(this.getDuracion());
+        Boolean disponible = validarDisponibilidad(fechaInicial,fechaFinal,jugador);
+
+        if(disponible){
+            this.estado.agregarJugador(this, jugador);            
+        }        
+        
+        return disponible;
+    }
+
+    private boolean validarDisponibilidad(LocalDateTime jugadorFechaInicial, LocalDateTime jugadorFechaFinal, Cuenta jugador){
+        
+        List<Partido> partidosInscritos = jugador.getPartidosInscritos().stream()
+            .filter(partido -> 
+                !partido.getEstado().getNombre().equals("Cancelado") &&
+                !partido.getEstado().getNombre().equals("Finalizado"))
+            .collect(Collectors.toList());             
+      
+        List<Partido> partidosCreados = jugador.getPartidosCreados().stream()
+             .filter(partido -> 
+                !partido.getEstado().getNombre().equals("Cancelado") &&
+                !partido.getEstado().getNombre().equals("Finalizado"))
+            .collect(Collectors.toList());
+
+        List<Partido> partidosTodos = new ArrayList<>();
+        partidosTodos.addAll(partidosInscritos);
+        partidosTodos.addAll(partidosCreados);
+
+        for(Partido partido : partidosTodos){
+            int partidoDuracion = partido.getDuracion();
+            LocalDateTime partidoFechaInicial = partido.getFechaHora();
+            LocalDateTime partidoFechaFinal =   partido.getFechaHora().plusMinutes(partidoDuracion);
+
+            
+
+            boolean existeConflicto = jugadorFechaInicial.isBefore(partidoFechaFinal) 
+                && partidoFechaInicial.isBefore(jugadorFechaFinal);
+            if(existeConflicto){
+                return false;
+            }
+        }
+
+       return true;
     }
     
+
     public void confirmar() {
         this.estado.confirmar(this);
     }
@@ -176,11 +223,11 @@ public class Partido {
         }
     }
     
-    public String getDuracion() {
+    public int getDuracion() {
         return duracion;
     }
     
-    public void setDuracion(String duracion) {
+    public void setDuracion(int duracion) {
         this.duracion = duracion;
     }
     
